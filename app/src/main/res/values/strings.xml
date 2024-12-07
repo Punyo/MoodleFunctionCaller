@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MoodleFunctionCaller</string>
+    <string name="ui_get_user_info">ログイン中のユーザーの情報を取得</string>
+    <string name="ui_get_user_courses">ログイン中のユーザーが登録している教科を取得</string>
+    <string name="ui_outputs_empty">ここへ結果が出力されます</string>
+    <string name="ui_now_processing">取得中……</string>
 </resources>
