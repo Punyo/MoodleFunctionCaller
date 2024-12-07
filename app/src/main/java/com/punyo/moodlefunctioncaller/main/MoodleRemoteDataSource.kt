@@ -12,7 +12,6 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-
 class MoodleRemoteDataSource(private val token: String) {
     private var userInfo: UserInfo? = null
     private val client = HttpClient(CIO) {
@@ -49,8 +48,32 @@ class MoodleRemoteDataSource(private val token: String) {
                 }
             )
         )
-        return response.body()
+        val courses = response.body<List<Course>>()
+
+        val response1: HttpResponse = client.submitForm(
+            url = moodleWebServiceURLWithQueries + "mod_assign_get_assignments",
+            formParameters = defaultParameters().plus(
+                parameters {
+                    for (i in 1..courses.size) {
+                        append("courseids[$i]", courses[i - 1].id.toString())
+                    }
+                }
+            )
+        )
+        return response1.body<MoodleResponse>().courses
     }
+
+//    suspend fun getAssignmentsById(courseId: Int): List<Assignment> {
+//        val response: HttpResponse = client.submitForm(
+//            url = moodleWebServiceURLWithQueries + "mod_assign_get_submission_status",
+//            formParameters = defaultParameters().plus(
+//                parameters {
+//                    append("courseids[0]", courseId.toString())
+//                }
+//            )
+//        )
+//        return response.body<MoodleResponse>().courses[0].assignments
+//    }
 
     private fun defaultParameters() = parameters {
         append("moodlewssettingfilter", "true")
@@ -61,6 +84,11 @@ class MoodleRemoteDataSource(private val token: String) {
 }
 
 @Serializable
+private data class MoodleResponse(
+    val courses: List<Course>
+)
+
+@Serializable
 data class UserInfo(
     val fullname: String,
     val userid: Int
@@ -68,6 +96,28 @@ data class UserInfo(
 
 @Serializable
 data class Course(
-    val displayname: String,
-    val id: Int
+    val fullname: String,
+    val id: Int,
+    val hidden: Boolean = false,
+    val assignments: List<Assignment> = emptyList()
 )
+
+@Serializable
+data class Assignment(
+    val id: Int,
+    val course: Int,
+    val name: String,
+    val duedate: Long,
+)
+
+@Serializable
+data class Submission(
+    val status: AssignmentStatus,
+    val timemodified: Long
+)
+
+enum class AssignmentStatus {
+    NOT_SUBMITTED,
+    SUBMITTED,
+    GRADED
+}

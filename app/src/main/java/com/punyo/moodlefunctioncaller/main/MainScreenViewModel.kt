@@ -23,6 +23,14 @@ class MainScreenViewModel(private val moodleRepository: MoodleRepository) :
         _uiState.value = _uiState.value.copy(currentOutput = output)
     }
 
+    fun setArgs1(args1: String) {
+        _uiState.value = _uiState.value.copy(args1 = args1)
+    }
+
+    fun setArgs2(args2: String) {
+        _uiState.value = _uiState.value.copy(args2 = args2)
+    }
+
     class Factory(
         private val moodleRepository: MoodleRepository
     ) :
@@ -36,4 +44,6 @@ class MainScreenViewModel(private val moodleRepository: MoodleRepository) :
 
 data class MainScreenUiState(
     val currentOutput: String = "",
+    val args1: String = "",
+    val args2: String = "",
 )
