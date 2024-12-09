@@ -9,6 +9,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.parameters
 import io.ktor.http.plus
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.time.ZonedDateTime
@@ -74,7 +75,7 @@ class MoodleRemoteDataSource(private val token: String) {
         return response1.body<GetAssignmentsResponse>().courses
     }
 
-    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionStatus {
+    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionInfo {
         val userInfo = getUserInfo()
         val response: HttpResponse = client.submitForm(
             url = moodleWebServiceURLWithQueries + "mod_assign_get_submission_status",
@@ -103,42 +104,102 @@ private data class GetAssignmentsResponse(
 
 @Serializable
 private data class GetSubmissionStatusResponse(
-    val lastattempt: SubmissionStatus
+    val lastattempt: SubmissionInfo
 )
 
 @Serializable
-data class SubmissionStatus(
+data class SubmissionInfo(
+    /**
+     * 提出が可能かどうか
+     */
     val cansubmit: Boolean,
-    val blindmarking: Boolean,
+    /**
+     * 提出に関する情報
+     */
     val submission: Submission
 )
 
 @Serializable
 data class Submission(
-    val status: String,
+    /**
+     * 提出状況
+     */
+    val status: SubmissionStatus,
+    /**
+     * 最後に編集が行われたUnix時間
+     */
     val timemodified: Long
 )
 
 @Serializable
 data class UserInfo(
+    /**
+     * ユーザーの名前
+     */
     val fullname: String,
+    /**
+     * ユーザーのID
+     */
     val userid: Int
 )
 
 @Serializable
 data class Course(
+    /**
+     * コースの名前
+     */
     val fullname: String,
+    /**
+     * コースのID
+     */
     val id: Int,
+    /**
+     * コースが非表示かどうか
+     */
     val hidden: Boolean = false,
+    /**
+     * 最後に編集が行われたUnix時間
+     */
     val timemodified: Long,
+    /**
+     * コースに属する課題のリスト
+     */
     val assignments: List<Assignment> = emptyList()
 )
 
 @Serializable
 data class Assignment(
+    /**
+     * 課題のID
+     */
     val id: Int,
+    /**
+     * 課題が属するコースのID
+     */
     val course: Int,
+    /**
+     * 課題の名前
+     */
     val name: String,
+    /**
+     * 課題提出期限のUnix時間
+     */
     val duedate: Long,
+    /**
+     * 課題提出の受付期限のUnix時間
+     */
+    val cutoffdate: Long
 )
 
+enum class SubmissionStatus {
+    /**
+     * 未提出
+     */
+    @SerialName("new")
+    NOT_SUBMITTED,
+    /**
+     * 提出済み
+     */
+    @SerialName("submitted")
+    SUBMITTED
+}

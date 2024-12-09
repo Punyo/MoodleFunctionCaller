@@ -19,7 +19,7 @@ class MainScreenViewModel(private val moodleRepository: MoodleRepository) :
         return moodleRepository.getUserCourses()
     }
 
-    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionStatus {
+    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionInfo {
         return moodleRepository.getSubmissionStatus(assignmentId)
     }
 
@@ -29,10 +29,6 @@ class MainScreenViewModel(private val moodleRepository: MoodleRepository) :
 
     fun setArgs1(args1: String) {
         _uiState.value = _uiState.value.copy(args1 = args1)
-    }
-
-    fun setArgs2(args2: String) {
-        _uiState.value = _uiState.value.copy(args2 = args2)
     }
 
     class Factory(
