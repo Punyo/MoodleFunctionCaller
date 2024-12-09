@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.punyo.moodlefunctioncaller"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
