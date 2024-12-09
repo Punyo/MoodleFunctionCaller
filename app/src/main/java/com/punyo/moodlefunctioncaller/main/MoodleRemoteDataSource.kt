@@ -1,7 +1,5 @@
 package com.punyo.moodlefunctioncaller.main
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -40,7 +38,6 @@ class MoodleRemoteDataSource(private val token: String) {
         return userInfo!!
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getUserCourses(
         excludeHiddenCourses: Boolean = true,
         excludeCourseNotModifiedAfter: ZonedDateTime? = null
