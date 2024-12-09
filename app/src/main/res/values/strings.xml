@@ -6,6 +6,5 @@
     （引数1で課題のIDを指定してください）</string>
     <string name="ui_outputs_empty">ここへ結果が出力されます</string>
     <string name="ui_args1">引数1</string>
-    <string name="ui_args2">引数2</string>
     <string name="ui_now_processing">取得中……</string>
 </resources>

@@ -62,16 +62,6 @@ fun MainScreen(
             },
             label = { Text(stringResource(id = R.string.ui_args1)) }
         )
-        TextField(
-            modifier = Modifier
-                .padding(4.dp)
-                .fillMaxWidth(),
-            value = state.value.args2,
-            onValueChange = {
-                viewModel.setArgs2(args2 = it)
-            },
-            label = { Text(stringResource(id = R.string.ui_args2)) }
-        )
         Button(
             modifier = Modifier
                 .padding(4.dp)
