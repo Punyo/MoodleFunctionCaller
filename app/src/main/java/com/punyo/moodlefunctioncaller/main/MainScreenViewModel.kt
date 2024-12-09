@@ -19,6 +19,10 @@ class MainScreenViewModel(private val moodleRepository: MoodleRepository) :
         return moodleRepository.getUserCourses()
     }
 
+    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionStatus {
+        return moodleRepository.getSubmissionStatus(assignmentId)
+    }
+
     fun setOutput(output: String) {
         _uiState.value = _uiState.value.copy(currentOutput = output)
     }

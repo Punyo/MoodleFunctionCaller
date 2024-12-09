@@ -26,24 +26,24 @@ class MoodleRemoteDataSource(private val token: String) {
     private val moodleWebServiceURLWithQueries =
         "https://cms7.ict.nitech.ac.jp/moodle40a/webservice/rest/server.php?moodlewsrestformat=json&wsfunction="
 
-    suspend fun getUserInfo(): UserInfo {
-        val response: HttpResponse = client.submitForm(
-            url = moodleWebServiceURLWithQueries + "core_webservice_get_site_info",
-            formParameters = defaultParameters()
-        )
-        userInfo = response.body<UserInfo>()
+    suspend fun getUserInfo(useAcquiredUserInfoIfAvailable: Boolean = true): UserInfo {
+        if (userInfo == null || !useAcquiredUserInfoIfAvailable) {
+            val response: HttpResponse = client.submitForm(
+                url = moodleWebServiceURLWithQueries + "core_webservice_get_site_info",
+                formParameters = defaultParameters()
+            )
+            userInfo = response.body<UserInfo>()
+        }
         return userInfo!!
     }
 
     suspend fun getUserCourses(): List<Course> {
-        if (userInfo == null) {
-            getUserInfo()
-        }
+        val userInfo = getUserInfo()
         val response: HttpResponse = client.submitForm(
             url = moodleWebServiceURLWithQueries + "core_enrol_get_users_courses",
             formParameters = defaultParameters().plus(
                 parameters {
-                    append("userid", userInfo!!.userid.toString())
+                    append("userid", userInfo.userid.toString())
                     append("returnusercount", "0")
                 }
             )
@@ -60,20 +60,22 @@ class MoodleRemoteDataSource(private val token: String) {
                 }
             )
         )
-        return response1.body<MoodleResponse>().courses
+        return response1.body<GetAssignmentsResponse>().courses
     }
 
-//    suspend fun getAssignmentsById(courseId: Int): List<Assignment> {
-//        val response: HttpResponse = client.submitForm(
-//            url = moodleWebServiceURLWithQueries + "mod_assign_get_submission_status",
-//            formParameters = defaultParameters().plus(
-//                parameters {
-//                    append("courseids[0]", courseId.toString())
-//                }
-//            )
-//        )
-//        return response.body<MoodleResponse>().courses[0].assignments
-//    }
+    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionStatus {
+        val userInfo = getUserInfo()
+        val response: HttpResponse = client.submitForm(
+            url = moodleWebServiceURLWithQueries + "mod_assign_get_submission_status",
+            formParameters = defaultParameters().plus(
+                parameters {
+                    append("userid", userInfo.userid.toString())
+                    append("assignid", assignmentId.toString())
+                }
+            )
+        )
+        return response.body<GetSubmissionStatusResponse>().lastattempt
+    }
 
     private fun defaultParameters() = parameters {
         append("moodlewssettingfilter", "true")
@@ -84,8 +86,26 @@ class MoodleRemoteDataSource(private val token: String) {
 }
 
 @Serializable
-private data class MoodleResponse(
+private data class GetAssignmentsResponse(
     val courses: List<Course>
+)
+
+@Serializable
+private data class GetSubmissionStatusResponse(
+    val lastattempt: SubmissionStatus
+)
+
+@Serializable
+data class SubmissionStatus(
+    val cansubmit: Boolean,
+    val blindmarking: Boolean,
+    val submission: Submission
+)
+
+@Serializable
+data class Submission(
+    val status: String,
+    val timemodified: Long
 )
 
 @Serializable
@@ -110,14 +130,3 @@ data class Assignment(
     val duedate: Long,
 )
 
-@Serializable
-data class Submission(
-    val status: AssignmentStatus,
-    val timemodified: Long
-)
-
-enum class AssignmentStatus {
-    NOT_SUBMITTED,
-    SUBMITTED,
-    GRADED
-}

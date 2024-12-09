@@ -82,7 +82,7 @@ fun MainScreen(
                     viewModel.setOutput(viewModel.getUserInfo().toString())
                 }
             }) {
-            Text(stringResource(id = R.string.ui_get_user_info))
+            Text(stringResource(id = R.string.ui_get_user_info), textAlign = TextAlign.Center)
         }
 
         Button(
@@ -95,7 +95,10 @@ fun MainScreen(
                     viewModel.setOutput(viewModel.getUserCourses().toString())
                 }
             }) {
-            Text(stringResource(id = R.string.ui_get_user_courses_and_assignments))
+            Text(
+                stringResource(id = R.string.ui_get_user_courses_and_assignments),
+                textAlign = TextAlign.Center
+            )
         }
 
         Button(
@@ -103,11 +106,19 @@ fun MainScreen(
                 .padding(4.dp)
                 .fillMaxWidth(),
             onClick = {
+                viewModel.setOutput(nowProcessingString)
                 coroutineScope.launch {
-                    viewModel.getUserInfo()
+                    viewModel.setOutput(
+                        viewModel.getSubmissionStatus(
+                            state.value.args1.toInt()
+                        ).toString()
+                    )
                 }
             }) {
-            Text(stringResource(id = R.string.ui_get_submission_status), textAlign = TextAlign.Center)
+            Text(
+                stringResource(id = R.string.ui_get_submission_status),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

@@ -8,4 +8,8 @@ class MoodleRepository(private val moodleRemoteDataSource: MoodleRemoteDataSourc
     suspend fun getUserCourses(): List<Course> {
         return moodleRemoteDataSource.getUserCourses()
     }
+
+    suspend fun getSubmissionStatus(assignmentId: Int): SubmissionStatus {
+        return moodleRemoteDataSource.getSubmissionStatus(assignmentId)
+    }
 }
