@@ -1,5 +1,7 @@
 package com.punyo.moodlefunctioncaller.main
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -11,6 +13,7 @@ import io.ktor.http.plus
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.ZonedDateTime
 
 class MoodleRemoteDataSource(private val token: String) {
     private var userInfo: UserInfo? = null
@@ -26,8 +29,8 @@ class MoodleRemoteDataSource(private val token: String) {
     private val moodleWebServiceURLWithQueries =
         "https://cms7.ict.nitech.ac.jp/moodle40a/webservice/rest/server.php?moodlewsrestformat=json&wsfunction="
 
-    suspend fun getUserInfo(useAcquiredUserInfoIfAvailable: Boolean = true): UserInfo {
-        if (userInfo == null || !useAcquiredUserInfoIfAvailable) {
+    suspend fun getUserInfo(returnAcquiredUserInfoIfAvailable: Boolean = true): UserInfo {
+        if (userInfo == null || !returnAcquiredUserInfoIfAvailable) {
             val response: HttpResponse = client.submitForm(
                 url = moodleWebServiceURLWithQueries + "core_webservice_get_site_info",
                 formParameters = defaultParameters()
@@ -37,7 +40,11 @@ class MoodleRemoteDataSource(private val token: String) {
         return userInfo!!
     }
 
-    suspend fun getUserCourses(): List<Course> {
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getUserCourses(
+        excludeHiddenCourses: Boolean = true,
+        excludeCourseNotModifiedAfter: ZonedDateTime? = null
+    ): List<Course> {
         val userInfo = getUserInfo()
         val response: HttpResponse = client.submitForm(
             url = moodleWebServiceURLWithQueries + "core_enrol_get_users_courses",
@@ -48,8 +55,15 @@ class MoodleRemoteDataSource(private val token: String) {
                 }
             )
         )
-        val courses = response.body<List<Course>>()
-
+        val courses = response.body<MutableList<Course>>()
+        if (excludeHiddenCourses) {
+            courses.removeIf(Course::hidden)
+        }
+        if (excludeCourseNotModifiedAfter != null) {
+            courses.removeIf { course ->
+                course.timemodified < excludeCourseNotModifiedAfter.toEpochSecond()
+            }
+        }
         val response1: HttpResponse = client.submitForm(
             url = moodleWebServiceURLWithQueries + "mod_assign_get_assignments",
             formParameters = defaultParameters().plus(
@@ -119,6 +133,7 @@ data class Course(
     val fullname: String,
     val id: Int,
     val hidden: Boolean = false,
+    val timemodified: Long,
     val assignments: List<Assignment> = emptyList()
 )
 
