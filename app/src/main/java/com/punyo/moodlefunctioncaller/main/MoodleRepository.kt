@@ -1,12 +1,20 @@
 package com.punyo.moodlefunctioncaller.main
 
+import java.time.ZonedDateTime
+
 class MoodleRepository(private val moodleRemoteDataSource: MoodleRemoteDataSource) {
-    suspend fun getUserInfo(): UserInfo {
-        return moodleRemoteDataSource.getUserInfo()
+    suspend fun getUserInfo(returnAcquiredUserInfoIfAvailable: Boolean = true): UserInfo {
+        return moodleRemoteDataSource.getUserInfo(returnAcquiredUserInfoIfAvailable)
     }
 
-    suspend fun getUserCourses(): List<Course> {
-        return moodleRemoteDataSource.getUserCourses()
+    suspend fun getUserCourses(
+        excludeHiddenCourses: Boolean = true,
+        excludeCourseNotModifiedAfter: ZonedDateTime? = null
+    ): List<Course> {
+        return moodleRemoteDataSource.getUserCourses(
+            excludeHiddenCourses,
+            excludeCourseNotModifiedAfter
+        )
     }
 
     suspend fun getSubmissionStatus(assignmentId: Int): SubmissionStatus {
